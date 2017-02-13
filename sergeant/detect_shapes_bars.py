@@ -19,8 +19,6 @@ cv2.createTrackbar('blurtype','bars',0,3,nothing)
 cv2.createTrackbar('blur','bars',0,30,nothing)
 cv2.createTrackbar('size','bars',480,1280,nothing)
 cv2.createTrackbar('mirror','bars',0,1,nothing)
-cv2.createTrackbar('asfsfd','bars',0,1,nothing)
-
 while(True):
 	ret, image = cap.read()
 	if cv2.getTrackbarPos('mirror','bars') == 1:
@@ -38,7 +36,6 @@ while(True):
 		size = 2
 	image = imutils.resize(image, width=size)
 
-	
 	if invert == 1:
 		image = cv2.bitwise_not(image)
 	else:
@@ -55,7 +52,8 @@ while(True):
 	elif blurtype == 2:
 		blurred = cv2.blur(gray,(blur, blur))
 	elif blurtype == 3:
-		blurred = cv2.bilateralFilter(gray,9,blur,blur)
+		blur = (blur+1) // 2
+		blurred = cv2.bilateralFilter(gray,blur,75,75)
 
 	ret,thresh = cv2.threshold(blurred,treshold_min,255,cv2.THRESH_BINARY)
 
