@@ -57,9 +57,9 @@ while(True):
 
 	ret,thresh = cv2.threshold(blurred, treshold_min, 255, cv2.THRESH_BINARY)
 
-	cnontours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+	contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 		cv2.CHAIN_APPROX_SIMPLE)
-	cnts = cnts[0] if imutils.is_cv2() else cnts[1]
+	contours = contours[0] if imutils.is_cv2() else contours[1]
 	sd = ShapeDetector()
 
 	if invert == 1:
@@ -69,7 +69,7 @@ while(True):
 
 	# loop over the contours
 	for contour in contours:
-		M = cv2.moments(c)
+		M = cv2.moments(contour)
 		cX=50
 		cY=50
 		if M["m00"]!=0:
