@@ -1,7 +1,3 @@
-# USAGE
-# python detect_shapes.py --image shapes_and_colors.png
-
-# import the necessary packages
 from shapedetector import ShapeDetector
 import argparse
 import imutils
