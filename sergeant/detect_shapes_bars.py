@@ -14,7 +14,6 @@ cv2.namedWindow('bars',cv2.WINDOW_AUTOSIZE)
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # create trackbars for color change
 cv2.createTrackbar('treshold_min','bars',0,255,nothing)
-cv2.createTrackbar('treshold_max','bars',0,255,nothing)
 cv2.createTrackbar('invert','bars',0,1,nothing)
 cv2.createTrackbar('blurtype','bars',0,3,nothing)
 cv2.createTrackbar('blur','bars',0,30,nothing)
@@ -22,8 +21,6 @@ cv2.createTrackbar('size','bars',480,1280,nothing)
 cv2.createTrackbar('mirror','bars',0,1,nothing)
 cv2.createTrackbar('asfsfd','bars',0,1,nothing)
 
-
-cv2.setTrackbarPos('treshold_max','bars', 255)
 while(True):
 	ret, image = cap.read()
 	if cv2.getTrackbarPos('mirror','bars') == 1:
@@ -32,7 +29,6 @@ while(True):
 	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#taking definitions of bars 
 	treshold_min = cv2.getTrackbarPos('treshold_min','bars')
-	treshold_max = cv2.getTrackbarPos('treshold_max','bars')
 	invert = cv2.getTrackbarPos('invert','bars')
 	blurtype = cv2.getTrackbarPos('blurtype','bars')
 	blur = cv2.getTrackbarPos('blur','bars')
@@ -61,7 +57,7 @@ while(True):
 	elif blurtype == 3:
 		blurred = cv2.bilateralFilter(gray,9,blur,blur)
 
-	ret,thresh = cv2.threshold(blurred,treshold_min,treshold_max,cv2.THRESH_BINARY)
+	ret,thresh = cv2.threshold(blurred,treshold_min,255,cv2.THRESH_BINARY)
 
 	cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 		cv2.CHAIN_APPROX_SIMPLE)
