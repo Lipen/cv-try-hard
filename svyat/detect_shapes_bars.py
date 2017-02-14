@@ -44,18 +44,20 @@ while(True):
 		invert = 0
 	
 	ratio = 1
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	# gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 	if blurtype == 0:
-		blurred = cv2.GaussianBlur(gray, (blur, blur), 0)
+		blurred = cv2.GaussianBlur(image, (blur, blur), 0)
 	elif blurtype == 1:
-		blurred = cv2.medianBlur(gray,blur)
+		blurred = cv2.medianBlur(image,blur)
 	elif blurtype == 2:
-		blurred = cv2.blur(gray,(blur, blur))
+		blurred = cv2.blur(image,(blur, blur))
 	elif blurtype == 3:
-		blurred = cv2.bilateralFilter(gray, 9, blur,blur)
+		blurred = cv2.bilateralFilter(image, 9, blur,blur)
 
-	ret,thresh = cv2.threshold(blurred, treshold_min, 255, cv2.THRESH_BINARY)
+	gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+
+	ret,thresh = cv2.threshold(gray, treshold_min, 255, cv2.THRESH_BINARY)
 
 	contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 		cv2.CHAIN_APPROX_SIMPLE)
