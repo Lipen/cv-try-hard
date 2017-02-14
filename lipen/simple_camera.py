@@ -1,9 +1,7 @@
 import cv2
 
 cam = cv2.VideoCapture(0)
-if cam.isOpened():
-    print('Successfully opened a capture object')
-else:
+if not cam.isOpened():
     raise ValueError('Failed to open a capture object.')
 
 while True:
