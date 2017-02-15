@@ -32,7 +32,7 @@ def init():
         raise ValueError('Failed to open a capture object.')
 
     cv2.namedWindow('MAIN')
-    cv2.namedWindow('BARS', cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow('BARS')
 
     cv2.createTrackbar('sigma', 'BARS', 33, 100, do_nothing)
     # cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
@@ -56,9 +56,7 @@ def main():
         image = cv2.flip(image, flipCode=1)
 
         # Blur
-        blur = cv2.getTrackbarPos('blur', 'BARS')
-        if blur % 2 == 0:
-            blur += 1
+        blur = 1 + 2 * cv2.getTrackbarPos('blur', 'BARS')
         blurred = cv2.medianBlur(image, blur)
 
         # Invert
