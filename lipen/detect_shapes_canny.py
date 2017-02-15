@@ -32,16 +32,17 @@ def init():
         raise ValueError('Failed to open a capture object.')
 
     cv2.namedWindow('MAIN')
-    cv2.namedWindow('BARS')
+    cv2.namedWindow('BARS', cv2.WINDOW_AUTOSIZE)
 
-    cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
+    cv2.createTrackbar('sigma', 'BARS', 33, 100, do_nothing)
+    # cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
     # cv2.createTrackbar('canny_high', 'BARS', 150, 255, do_nothing)
     cv2.createTrackbar('blur', 'BARS', 3, 10, do_nothing)
     cv2.createTrackbar('invert', 'BARS', 0, 1, do_nothing)
 
     cv2.moveWindow('MAIN', 55, 0)
     cv2.moveWindow('BARS', 60, 550)
-    cv2.resizeWindow('BARS', 1000, 100)
+    cv2.resizeWindow('BARS', 1000, 1)
 
 
 def main():
@@ -71,7 +72,8 @@ def main():
         # canny_low = cv2.getTrackbarPos('canny_low', 'BARS')
         # canny_high = 3 * canny_low
         # canny_high = max(canny_low, cv2.getTrackbarPos('canny_high', 'BARS'))
-        sigma = 0.33
+        # sigma = 0.33
+        sigma = cv2.getTrackbarPos('sigma', 'BARS') / 100
         v = np.median(blurred)
         canny_low = int(max(0, (1 - sigma) * v))
         canny_high = int(min(255, (1 + sigma) * v))
