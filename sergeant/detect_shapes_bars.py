@@ -10,7 +10,8 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT,720);
 def nothing(x):
 	pass
 
-cv2.namedWindow('bars',cv2.WINDOW_AUTOSIZE) 
+cv2.namedWindow('bars',cv2.WINDOW_AUTOSIZE)
+cv2.resizeWindow('bars',400,300) 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # create trackbars for color change
 cv2.createTrackbar('treshold_min','bars',0,255,nothing)
