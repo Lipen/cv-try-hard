@@ -34,7 +34,7 @@ def init():
 
     cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
     # cv2.createTrackbar('canny_high', 'BARS', 150, 255, do_nothing)
-    cv2.createTrackbar('blur (odd)', 'BARS', 3, 10, do_nothing)
+    cv2.createTrackbar('blur', 'BARS', 3, 10, do_nothing)
     cv2.createTrackbar('invert', 'BARS', 0, 1, do_nothing)
 
     cv2.moveWindow('MAIN', 55, 0)
@@ -83,7 +83,7 @@ def main():
         ratio = diag_mm / diag0
 
         for contour in contours:
-            if cv2.contourArea(contour) < 400:
+            if cv2.contourArea(contour) < 200:
                 continue
 
             rect = cv2.minAreaRect(contour)
@@ -95,7 +95,7 @@ def main():
             (blbrX, blbrY) = midpoint(bl, br)
             (tlblX, tlblY) = midpoint(tl, bl)
             (trbrX, trbrY) = midpoint(tr, br)
-            dA = math.hypot(tltrY - blbrX, tltrY - blbrX)
+            dA = math.hypot(tltrX - blbrX, tltrY - blbrY)
             dB = math.hypot(tlblX - trbrX, tlblY - trbrY)
             dD = math.hypot(dA, dB)
 
