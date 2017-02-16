@@ -13,7 +13,7 @@ from pycv import Recognize
 
 
 # 0 is xtion, 1 is usb_cam topic, 2 is opencv source
-CAMERA = 0
+CAMERA = 2
 # select /dev/video%
 OPENCV_CAM = 0
 
