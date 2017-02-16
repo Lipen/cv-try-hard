@@ -9,7 +9,6 @@ def do_nothing(_):
 
 
 def midpoint(ptA, ptB):
-    # return (ptA[0] + ptB[0]) / 2, (ptA[1] + ptB[1]) / 2
     return (ptA + ptB) / 2
 
 
@@ -39,14 +38,15 @@ def init():
     cv2.namedWindow('MAIN')
     cv2.namedWindow('BARS')
 
-    cv2.createTrackbar('sigma', 'BARS', 33, 100, do_nothing)
     # cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
     # cv2.createTrackbar('canny_high', 'BARS', 150, 255, do_nothing)
-    cv2.createTrackbar('l', 'BARS', 50, 100, do_nothing)
+    cv2.createTrackbar('dfov', 'BARS', 68, 100, do_nothing)
+    cv2.createTrackbar('l', 'BARS', 45, 100, do_nothing)
+    cv2.createTrackbar('sigma', 'BARS', 33, 100, do_nothing)
     cv2.createTrackbar('blur', 'BARS', 3, 10, do_nothing)
 
     cv2.moveWindow('MAIN', 55, 0)
-    cv2.moveWindow('BARS', 60, 550)
+    cv2.moveWindow('BARS', 60, 500)
     cv2.resizeWindow('BARS', 1000, 10)
 
 
@@ -85,8 +85,12 @@ def main():
         x0, y0 = image.shape[:2]
         diag0 = math.hypot(x0, y0)
         # l = 400
-        l = max(0, cv2.getTrackbarPos('l', 'BARS'))*10
-        width_mm, height_mm, diag_mm = getWHImage(l, 54.5, 42.3, 66.17)
+        l = max(0, cv2.getTrackbarPos('l', 'BARS')) * 10
+        hfov = 54.5
+        vfov = 42.3
+        # dfov = 66.17
+        dfov = cv2.getTrackbarPos('dfov', 'BARS')
+        width_mm, height_mm, diag_mm = getWHImage(l, hfov, vfov, dfov)
         ratio = diag_mm / diag0
 
         for contour in contours:
