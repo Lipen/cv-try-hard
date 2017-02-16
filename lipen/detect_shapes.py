@@ -14,8 +14,7 @@ def detect(contour):
         shape = "triangle"
     elif n == 4:
         (x, y, w, h) = cv2.boundingRect(approx)
-        ar = w / float(h)
-        shape = "square" if ar >= 0.95 and ar <= 1.05 else "rectangle"
+        shape = "square" if 0.9 <= w / h <= 1.1 else "rectangle"
     elif n == 5:
         shape = "pentagon"
     else:
@@ -103,8 +102,12 @@ def main():
                 text_pos = (50, 50)
 
             cv2.drawContours(image, [contour], -1, (0, 255, 0), 2)
-            cv2.putText(image, shape, text_pos, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(0, 0, 0), thickness=4)
-            cv2.putText(image, shape, text_pos, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255), thickness=2)
+            cv2.putText(image, shape, text_pos,
+                        cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
+                        color=(0, 0, 0), thickness=4)
+            cv2.putText(image, shape, text_pos,
+                        cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
+                        color=(255, 255, 255), thickness=2)
 
         cv2.imshow("Image", image)
         # cv2.imshow("Blurred", blurred)
