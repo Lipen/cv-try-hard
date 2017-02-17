@@ -4,10 +4,16 @@ import pickle
 
 
 def init():
-    global cam
-    cam = cv2.VideoCapture(0)
-    if not cam.isOpened():
-        raise ValueError('Failed to open a capture object.')
+    global cam, mirror
+    cam = cv2.VideoCapture(1)
+    if cam.isOpened():
+        mirror = False
+    else:
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            mirror = True
+        else:
+            raise ValueError('Failed to open a capture object.')
 
     global w, h
     h, w = cam.read()[1].shape[:2]
@@ -18,7 +24,7 @@ def init():
     global rms, camera_matrix, dist_coefs, new_camera_matrix
     with open('data_distortion.pickle', 'rb') as f:
         rms, camera_matrix, dist_coefs = pickle.load(f)
-    new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 1, (w, h))
+    new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 0, (w, h))
 
 
 def main():
@@ -26,11 +32,12 @@ def main():
 
     while True:
         _, image = cam.read()
-        image = cv2.flip(image, flipCode=1)
+        if mirror:
+            image = cv2.flip(image, flipCode=1)
 
         image_undistorted = cv2.undistort(image, camera_matrix, dist_coefs, None, new_camera_matrix)
 
-        cv2.imshow('MAIN', image)
+        cv2.imshow('MAIN', np.hstack([image, image_undistorted]))
 
         if cv2.waitKey(1) == 27:
             break
