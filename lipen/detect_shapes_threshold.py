@@ -47,9 +47,9 @@ def init():
 
     cv2.createTrackbar('epsilon', 'Bars', 40, 100, nothing)
     cv2.createTrackbar('threshold_min', 'Bars', 100, 255, nothing)
-    cv2.createTrackbar('invert', 'Bars', 0, 1, nothing)
-    cv2.createTrackbar('blur_type', 'Bars', 1, 3, nothing)
     cv2.createTrackbar('blur', 'Bars', 1, 10, nothing)
+    cv2.createTrackbar('blur_type', 'Bars', 1, 3, nothing)
+    cv2.createTrackbar('invert', 'Bars', 0, 1, nothing)
     cv2.createTrackbar('mirror', 'Bars', int(mirror), 1, mirror_callback)
 
     cv2.moveWindow('Main', 55, 0)
@@ -97,6 +97,9 @@ def main():
         _, contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in contours:
+            if cv2.contourArea(contour) < 500:
+                continue
+
             shape, approx = detect(contour)
 
             M = cv2.moments(contour)
