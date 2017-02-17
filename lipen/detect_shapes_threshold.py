@@ -1,48 +1,58 @@
 import cv2
+import numpy as np
 
 
 def nothing(x):
     pass
 
 
+def mirror_callback(value):
+    global mirror
+    mirror = bool(value)
+
+
 def detect(contour):
     peri = cv2.arcLength(contour, True)
-    approx = cv2.approxPolyDP(contour, 0.04 * peri, True)
+    epsilon = cv2.getTrackbarPos('epsilon', 'Bars') / 1000.  # 0.04
+    approx = cv2.approxPolyDP(contour, epsilon * peri, True)
     n = len(approx)
 
     if n == 3:
-        shape = "triangle"
+        shape = 'triangle'
     elif n == 4:
         (x, y, w, h) = cv2.boundingRect(approx)
-        shape = "square" if 0.9 <= w / h <= 1.1 else "rectangle"
+        shape = 'square' if 0.9 <= w / h <= 1.1 else 'rectangle'
     elif n == 5:
-        shape = "pentagon"
+        shape = 'pentagon'
     else:
-        shape = "circle"
+        shape = 'circle'
 
-    return shape
+    return shape, approx
 
 
 def init():
-    global cam
+    global cam, mirror
+    cam = cv2.VideoCapture(1)
+    if cam.isOpened():
+        mirror = False
+    else:
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            mirror = True
+        else:
+            raise ValueError('Failed to open a capture object.')
 
-    cam = cv2.VideoCapture(0)
-    # cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    # cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    cam.read()
-
-    cv2.namedWindow('Image')
-    cv2.namedWindow('Thresholded')
+    cv2.namedWindow('Main')
     cv2.namedWindow('Bars')
 
+    cv2.createTrackbar('epsilon', 'Bars', 40, 100, nothing)
     cv2.createTrackbar('threshold_min', 'Bars', 100, 255, nothing)
     cv2.createTrackbar('invert', 'Bars', 0, 1, nothing)
     cv2.createTrackbar('blur_type', 'Bars', 1, 3, nothing)
     cv2.createTrackbar('blur', 'Bars', 1, 10, nothing)
-    # cv2.createTrackbar('size', 'Bars', 480, 1280, nothing)
-    cv2.createTrackbar('mirror', 'Bars', 1, 1, nothing)
+    cv2.createTrackbar('mirror', 'Bars', int(mirror), 1, mirror_callback)
 
-    cv2.moveWindow('Image', 55, 0)
+    cv2.moveWindow('Main', 55, 0)
     cv2.moveWindow('Bars', 60, 550)
     cv2.resizeWindow('Bars', 1000, 100)
 
@@ -55,7 +65,7 @@ def main():
         _, image = cam.read()
 
         # Flip
-        if cv2.getTrackbarPos('mirror', 'Bars'):
+        if mirror:
             image = cv2.flip(image, flipCode=1)
 
         # Blur
@@ -70,7 +80,7 @@ def main():
         elif blur_type == 3:
             blurred = cv2.bilateralFilter(image, 9, blur, blur)
         else:
-            raise ValueError("Unsupported blur type")
+            raise ValueError('Unsupported blur type')
 
         # Grayscale
         gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
@@ -86,22 +96,15 @@ def main():
         # Find contours
         _, contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        ratio = 1  # What is that?
-
         for contour in contours:
-            contour = contour.astype('float')
-            contour *= ratio
-            contour = contour.astype('int')
+            shape, approx = detect(contour)
 
-            shape = detect(contour)
             M = cv2.moments(contour)
-            if M['m00']:
-                text_pos = (int(M['m10'] / M['m00'] * ratio),
-                            int(M['m01'] / M['m00'] * ratio))
-            else:
-                text_pos = (50, 50)
+            text_pos = (int(M['m10'] / M['m00']),
+                        int(M['m01'] / M['m00'])) if M['m00'] else (50, 50)
 
             cv2.drawContours(image, [contour], -1, (0, 255, 0), 2)
+            cv2.drawContours(image, [approx], -1, (0, 0, 255), 2)
             cv2.putText(image, shape, text_pos,
                         cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
                         color=(0, 0, 0), thickness=4)
@@ -109,9 +112,8 @@ def main():
                         cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
                         color=(255, 255, 255), thickness=2)
 
-        cv2.imshow("Image", image)
-        # cv2.imshow("Blurred", blurred)
-        cv2.imshow("Thresholded", thresh)
+        thresh_bgr = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
+        cv2.imshow('Main', np.hstack((image, thresh_bgr)))
 
         if cv2.waitKey(1) == 27:
             break
