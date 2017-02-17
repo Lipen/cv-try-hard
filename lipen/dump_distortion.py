@@ -4,14 +4,21 @@ import pickle
 
 
 def init():
-    global cam
-    cam = cv2.VideoCapture(0)
-    if not cam.isOpened():
-        raise ValueError('Failed to open a capture object.')
+    global cam, mirror
+    cam = cv2.VideoCapture(1)
+    if cam.isOpened():
+        mirror = False
+    else:
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            mirror = True
+        else:
+            raise ValueError('Failed to open a capture object.')
 
     global w, h
-    h, w = cam.read()[1].shape[:2]
-    print('[*] (w, h): {!r}'.format((w, h)))
+    w = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    print('[*] (w, h): ({}, {})'.format(w, h))
 
     cv2.namedWindow('MAIN')
 
@@ -40,6 +47,7 @@ def main():
 
         if found:
             print('[+] Corner found.')
+            # TODO: Why cornerSubPix doesn`t work?
             # cv2.cornerSubPix(image, corners, (5, 5), (-1, -1), term_criteria)
             img_points.append(corners.reshape(-1, 2))
             obj_points.append(pattern_points)
@@ -65,10 +73,15 @@ def main():
             print('    {}'.format(row))
         print('[+] Distortion coefficients:\n    {}'.format(dist_coefs.ravel()))
 
-        with open('data_distortion.pickle', 'wb') as f:
-            pickle.dump((rms, camera_matrix, dist_coefs), f, pickle.HIGHEST_PROTOCOL)
+        filename = 'data/data_distortion.pickle'
+        print('[*] Dumping to {}...'.format(filename))
+        with open(filename, 'wb') as f:
+            pickle.dump((rms, camera_matrix, dist_coefs), f,
+                        pickle.HIGHEST_PROTOCOL)
     else:
         print('[-] NO DATA TO CALIBRATE')
+
+    print('[@] All done.')
 
 if __name__ == '__main__':
     main()
