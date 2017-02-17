@@ -12,37 +12,40 @@ def detect(contour):
     n = len(approx)
 
     if n == 3:
-        shape = "triangle"
+        shape = 'triangle'
     elif n == 4:
         (x, y, w, h) = cv2.boundingRect(approx)
-        shape = "square" if 0.9 <= w / h <= 1.1 else "rectangle"
+        shape = 'square' if 0.9 <= w / h <= 1.1 else 'rectangle'
     elif n == 5:
-        shape = "pentagon"
+        shape = 'pentagon'
     else:
-        shape = "circle"
+        shape = 'circle'
 
     return shape
 
 
 def init():
-    global cam
+    global cam, mirror
+    cam = cv2.VideoCapture(1)
+    if cam.isOpened():
+        mirror = False
+    else:
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            mirror = True
+        else:
+            raise ValueError('Failed to open a capture object.')
 
-    cam = cv2.VideoCapture(0)
-    if not cam.isOpened():
-        raise ValueError('Failed to open a capture object.')
+    cv2.namedWindow('Main')
+    cv2.namedWindow('Bars')
 
-    cv2.namedWindow('MAIN')
-    cv2.namedWindow('BARS')
+    cv2.createTrackbar('sigma', 'Bars', 33, 100, do_nothing)
+    cv2.createTrackbar('blur', 'Bars', 3, 10, do_nothing)
+    cv2.createTrackbar('invert', 'Bars', 0, 1, do_nothing)
 
-    cv2.createTrackbar('sigma', 'BARS', 33, 100, do_nothing)
-    # cv2.createTrackbar('canny_low', 'BARS', 20, 100, do_nothing)
-    # cv2.createTrackbar('canny_high', 'BARS', 150, 255, do_nothing)
-    cv2.createTrackbar('blur', 'BARS', 3, 10, do_nothing)
-    cv2.createTrackbar('invert', 'BARS', 0, 1, do_nothing)
-
-    cv2.moveWindow('MAIN', 55, 0)
-    cv2.moveWindow('BARS', 60, 550)
-    cv2.resizeWindow('BARS', 1000, 1)
+    cv2.moveWindow('Main', 55, 0)
+    cv2.moveWindow('Bars', 60, 550)
+    cv2.resizeWindow('Bars', 1000, 1)
 
 
 def main():
@@ -53,25 +56,22 @@ def main():
         _, image = cam.read()
 
         # Flip
-        image = cv2.flip(image, flipCode=1)
+        if mirror:
+            image = cv2.flip(image, flipCode=1)
 
         # Blur
-        blur = 1 + 2 * cv2.getTrackbarPos('blur', 'BARS')
+        blur = 1 + 2 * cv2.getTrackbarPos('blur', 'Bars')
         blurred = cv2.medianBlur(image, blur)
 
         # Invert
-        if cv2.getTrackbarPos('invert', 'BARS'):
+        if cv2.getTrackbarPos('invert', 'Bars'):
             blurred = cv2.bitwise_not(blurred)
 
         # # Grayscale
         # gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
 
         # Canny and morphs
-        # canny_low = cv2.getTrackbarPos('canny_low', 'BARS')
-        # canny_high = 3 * canny_low
-        # canny_high = max(canny_low, cv2.getTrackbarPos('canny_high', 'BARS'))
-        # sigma = 0.33
-        sigma = cv2.getTrackbarPos('sigma', 'BARS') / 100
+        sigma = cv2.getTrackbarPos('sigma', 'Bars') / 100.
         v = np.median(blurred)
         canny_low = int(max(0, (1 - sigma) * v))
         canny_high = int(min(255, (1 + sigma) * v))
@@ -86,16 +86,13 @@ def main():
             if cv2.contourArea(contour) < 500:
                 continue
 
+            shape = detect(contour)
             box = cv2.minAreaRect(contour)
             box = cv2.boxPoints(box)
 
-            shape = detect(contour)
             M = cv2.moments(contour)
-            if M['m00']:
-                text_pos = (int(M['m10'] / M['m00']),
-                            int(M['m01'] / M['m00']))
-            else:
-                text_pos = (50, 50)
+            text_pos = (int(M['m10'] / M['m00']),
+                        int(M['m01'] / M['m00'])) if M['m00'] else (50, 50)
 
             cv2.drawContours(image, [box.astype('int')], -1, (0, 255, 0), 2)
             cv2.drawContours(image, [contour], -1, (0, 0, 255), 2)
@@ -103,7 +100,7 @@ def main():
             cv2.putText(image, shape, text_pos, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255), thickness=2)
 
         edged_bgr = cv2.cvtColor(edged, cv2.COLOR_GRAY2BGR)
-        cv2.imshow('MAIN', np.hstack([image, edged_bgr]))
+        cv2.imshow('Main', np.hstack([image, edged_bgr]))
 
         if cv2.waitKey(1) == 27:
             break
