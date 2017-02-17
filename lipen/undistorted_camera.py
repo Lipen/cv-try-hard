@@ -16,7 +16,8 @@ def init():
             raise ValueError('Failed to open a capture object.')
 
     global w, h
-    h, w = cam.read()[1].shape[:2]
+    w = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
     print('[*] (w, h): ({}, {})'.format(w, h))
 
     cv2.namedWindow('MAIN')
