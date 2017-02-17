@@ -26,8 +26,11 @@ def main():
 
         cv2.imshow('MAIN', image)
 
-    if cv2.waitKey(1) == 27:
-        break
+        if cv2.waitKey(1) == 27:
+            break
 
-cv2.destroyAllWindows()
-cam.release()
+    cv2.destroyAllWindows()
+    cam.release()
+
+if __name__ == '__main__':
+    main()
