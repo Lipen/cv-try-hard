@@ -5,7 +5,7 @@ import pickle
 
 def init():
     global cam
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     if not cam.isOpened():
         raise ValueError('Failed to open a capture object.')
 
@@ -28,8 +28,8 @@ def init():
 def main():
     init()
 
-    camera_matrix = None
-    dist_coefs = None
+    img_points = []
+    obj_points = []
 
     while True:
         _, image = cam.read()
@@ -41,22 +41,24 @@ def main():
         if found:
             print('[+] Corner found.')
             # cv2.cornerSubPix(image, corners, (5, 5), (-1, -1), term_criteria)
-            img_points = [corners.reshape(-1, 2)]
-            obj_points = [pattern_points]
-
-            rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), camera_matrix, dist_coefs, flags=cv2.CALIB_USE_INTRINSIC_GUESS | cv2.CALIB_FIX_PRINCIPAL_POINT)
+            img_points.append(corners.reshape(-1, 2))
+            obj_points.append(pattern_points)
 
         cv2.drawChessboardCorners(image, pattern_size, corners, found)
         cv2.imshow('MAIN', image)
 
-        if cv2.waitKey(1) == 27:
+        if cv2.waitKey(50) == 27:
             break
 
     cv2.destroyAllWindows()
     cam.release()
 
-    print('[*] Final parameters:')
-    if camera_matrix is not None:
+    if img_points:
+        print('[+] Total {} points to use'.format(len(img_points)))
+        print('[*] Calibrating...')
+        rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
+
+        print('[*] Final parameters:')
         print('[+] RMS:\n    {}'.format(rms))
         print('[+] Camera matrix:')
         for row in camera_matrix:
@@ -66,7 +68,7 @@ def main():
         with open('data_distortion.pickle', 'wb') as f:
             pickle.dump((rms, camera_matrix, dist_coefs), f, pickle.HIGHEST_PROTOCOL)
     else:
-        print('[-] NO DATA')
+        print('[-] NO DATA TO CALIBRATE')
 
 if __name__ == '__main__':
     main()
