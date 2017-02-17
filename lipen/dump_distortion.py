@@ -40,7 +40,8 @@ def main():
 
     while True:
         _, image = cam.read()
-        image = cv2.flip(image, flipCode=1)
+        if mirror:
+            image = cv2.flip(image, flipCode=1)
         # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         found, corners = cv2.findChessboardCorners(image, pattern_size)
@@ -55,7 +56,7 @@ def main():
         cv2.drawChessboardCorners(image, pattern_size, corners, found)
         cv2.imshow('MAIN', image)
 
-        if cv2.waitKey(50) == 27:
+        if cv2.waitKey(50) == 27:  # 1/50ms = 20 FPS
             break
 
     cv2.destroyAllWindows()
