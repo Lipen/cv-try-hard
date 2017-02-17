@@ -29,11 +29,16 @@ def put_text(image, pos, *args, fmt='{:.0f}mm'):
 
 
 def init():
-    global cam
-
-    cam = cv2.VideoCapture(0)
-    if not cam.isOpened():
-        raise ValueError('Failed to open a capture object.')
+    global cam, mirror
+    cam = cv2.VideoCapture(1)
+    if cam.isOpened():
+        mirror = False
+    else:
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            mirror = True
+        else:
+            raise ValueError('Failed to open a capture object.')
 
     cv2.namedWindow('MAIN')
     cv2.namedWindow('BARS')
@@ -58,7 +63,8 @@ def main():
         _, image = cam.read()
 
         # Mirror
-        image = cv2.flip(image, flipCode=1)
+        if mirror:
+            image = cv2.flip(image, flipCode=1)
 
         # Grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
