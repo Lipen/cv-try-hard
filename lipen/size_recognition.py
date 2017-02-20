@@ -24,8 +24,14 @@ def getWHImage(l, hfov=58, vfov=45, dfov=70):
 
 def put_text(image, pos, *args, fmt='{:.0f}mm'):
     cv2.putText(image, fmt.format(*args), (int(pos[0]), int(pos[1])),
+                cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
+                color=(255, 100, 0), thickness=1)
+
+
+def put_text2(image, pos, *args, fmt='{:.0f}mm'):
+    cv2.putText(image, fmt.format(*args), (int(pos[0]), int(pos[1])),
                 cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.7,
-                color=(255, 100, 0), thickness=2)
+                color=(255, 255, 0), thickness=2)
 
 
 def init():
@@ -88,7 +94,7 @@ def main():
         # Find contours
         _, contours, hierarchy = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        x0, y0 = image.shape[:2]
+        y0, x0 = image.shape[:2]
         diag0 = math.hypot(x0, y0)
         # l = 400
         l = max(0, cv2.getTrackbarPos('l', 'BARS')) * 10
@@ -100,7 +106,7 @@ def main():
         ratio = diag_mm / diag0
 
         for contour in contours:
-            if cv2.contourArea(contour) < 200:
+            if cv2.contourArea(contour) < 1000:
                 continue
 
             # @rect :: tuple((center_x, center_y), (width, height), angle_deg)
@@ -124,8 +130,8 @@ def main():
             dD = math.hypot(dA, dB)
 
             xoc, yoc = midpoint(tl, br)
-            xcc = x0 - yoc
-            ycc = y0 - xoc
+            xcc = xoc - x0 / 2
+            ycc = y0 / 2 - yoc
 
             alpha = math.atan2(dB, dA)
             dimD = dD * ratio
@@ -140,6 +146,7 @@ def main():
 
             put_text(image, (tltrX - 15, tltrY - 10), dimA)  # width
             put_text(image, (trbrX + 10, trbrY), dimB)  # height
+            put_text2(image, (xoc, yoc), xcc * ratio, ycc * ratio, fmt='({:.0f},{:.0f})')
 
         edged_bgr = cv2.cvtColor(edged, cv2.COLOR_GRAY2BGR)
         cv2.imshow('MAIN', np.hstack([image, edged_bgr]))
