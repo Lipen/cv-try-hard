@@ -15,7 +15,7 @@ class NextGenRecognize:
 
     def __init__(self, source, is_ros_msg=False):
         self.is_ros_msg = is_ros_msg
-        _, _, self.diag_mm = self.getWHImage(420, dfov=68)
+        self.imshape_mm = self.getWHImage(420, dfov=68)
 
         self.sub_camera = rospy.Subscriber(source, Image, self.callback_camera)
         self.sub_orientation = rospy.Subscriber('/orientation', Orientation, self.callback_orientation, queue_size=1)
@@ -56,12 +56,21 @@ class NextGenRecognize:
         cv_image = None
         try:
             cv_image = bridge.imgmsg_to_cv2(data, 'bgr8')
-            h, w = cv_image[:2]
+            h, w = cv_image.shape[:2]
             diag_px = math.hypot(w, h)
             self.imshape_px = (w, h, diag_px)
         except CvBridgeError as e:
             rospy.loginfo('Conversion failed: {}'.format(e.message))
         return cv_image
+
+    def getMsgImage(self, cv_image):
+        bridge = CvBridge()
+        msg_image = None
+        try:
+            msg_image = bridge.cv2_to_imgmsg(cv_image, "bgr8")
+        except CvBridgeError, e:
+            rospy.loginfo('Conversion failed: {}'.format(e.message))
+        return msg_image
 
     def midpoint(self, ptA, ptB):
         return (ptA + ptB) / 2
@@ -73,7 +82,7 @@ class NextGenRecognize:
         cv2.putText(image, fmt.format(*args), pos, cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=fontScale, color=color2, thickness=thickness2)
 
-    def get_objects_list(self, image):
+    def get_objects_list(self, image, *args, **kwargs):
         objects_list = []
 
         base_contour = np.array([[[43, 17]], [[31, 24]], [[27, 33]], [[85, 183]], [[75, 194]], [[84, 217]], [[129, 206]], [[139, 197]], [[136, 180]], [[132, 174]], [[123, 175]], [[118, 169]], [[61, 20]], [[56, 16]]])
@@ -172,4 +181,4 @@ class NextGenRecognize:
                             cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8,
                             color=(255, 255, 255), thickness=2)
 
-        return objects_list
+        return objects_list, image
