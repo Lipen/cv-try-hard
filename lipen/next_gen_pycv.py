@@ -13,7 +13,8 @@ from cvision.msg import Orientation
 
 class NextGenRecognize:
 
-    def __init__(self, source):
+    def __init__(self, source, is_ros_msg=False):
+        self.is_ros_msg = is_ros_msg
         _, _, self.diag_mm = self.getWHImage(420, dfov=68)
 
         self.sub_camera = rospy.Subscriber(source, Image, self.callback_camera)
@@ -65,7 +66,7 @@ class NextGenRecognize:
     def midpoint(self, ptA, ptB):
         return (ptA + ptB) / 2
 
-    def put_text(image, pos, *args, fmt='{:.0f}mm', fontScale=0.5, color1=(0, 0, 0), color2=(0, 255, 0), thickness1=1, thickness2=2):
+    def put_text(self, image, pos, args, fmt='{:.0f}mm', fontScale=0.5, color1=(0, 0, 0), color2=(0, 255, 0), thickness1=1, thickness2=2):
         pos = (int(pos[0]), int(pos[1]))
         cv2.putText(image, fmt.format(*args), pos, cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=fontScale, color=color1, thickness=thickness1)
@@ -124,7 +125,7 @@ class NextGenRecognize:
             dB = math.hypot(tlblX - trbrX, tlblY - trbrY)
             dD = math.hypot(dA, dB)
 
-            xoc, yoc = midpoint(tl, br)
+            xoc, yoc = self.midpoint(tl, br)
             xcc = xoc - x0 / 2
             ycc = y0 / 2 - yoc
 
@@ -139,9 +140,9 @@ class NextGenRecognize:
             cv2.drawContours(image, [box.astype('int')], -1, (0, 255, 0), 2)
             cv2.drawContours(image, [contour], -1, (0, 0, 255), 2)
 
-            put_text(image, (tltrX - 15, tltrY - 10), dimA, color2=(255, 100, 0), fontScale=0.5, thickness1=2, thickness2=4)  # width
-            put_text(image, (trbrX + 10, trbrY), dimB, color2=(255, 100, 0), fontScale=0.5, thickness1=2, thickness2=4)  # width
-            put_text(image, (xoc, yoc), xcc * ratio, ycc * ratio, fmt='({:.0f},{:.0f})', color2=(255, 200, 0), fontScale=0.7, thickness1=2, thickness2=4)  # center coordinates
+            self.put_text(image, (tltrX - 15, tltrY - 10), (dimA,), color2=(255, 100, 0), fontScale=0.5, thickness1=2, thickness2=4)  # width
+            self.put_text(image, (trbrX + 10, trbrY), (dimB,), color2=(255, 100, 0), fontScale=0.5, thickness1=2, thickness2=4)  # width
+            self.put_text(image, (xoc, yoc), (xcc * ratio, ycc * ratio), fmt='({:.0f},{:.0f})', color2=(255, 200, 0), fontScale=0.7, thickness1=2, thickness2=4)  # center coordinates
             # #######
 
             M = cv2.moments(contour)
